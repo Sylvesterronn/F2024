@@ -1,0 +1,102 @@
+@startuml
+
+' Classes and Interfaces
+interface IStockProviderInterface {
+    + Instance: StockProvider {get}
+    + StockUpdateEvent
+    + ValidateShare(share: String): boolean
+    + SubscribeStockProviderEvent(share: String, handler: EventHandler): void
+}
+
+interface ITradeAdvisor {
+    + SetAdvisorStrategy(strategy: String, parameters: float[]): void
+    + Update(share: Share): string
+}
+
+class UI {
+    + AddShareEvent
+    + SuperviseStockEvent
+    + OnDisplay(obj, {msg: String}): void
+}
+
+class SuperviseStockEventArgs {
+    + ShareName: String {get}
+    + Strategy: String {get}
+    + Parameters: float[] {get}
+}
+
+class AddShareEventArgs {
+    + Share: String {get}
+}
+
+class DisplayEventArgs {
+    + Message: String {get}
+}
+
+class StockManager {
+    + OnSuperviseStock(obj, {shareName: string, strategy: String, parameters: float[]}): void
+    + OnAddShare(obj, {share: string}): void
+    + OnStockRecommended(obj, e: StockRecommendedEventArgs): void
+    + AddShareToList(name: string, share: Share): void
+    stockProvider: IStockProvider
+    shares: Share[]
+    + DisplayEvent
+}
+
+class StockRecommendedEventArgs {
+    + Share: Share {get}
+    + Recommendation: String {get}
+}
+
+class StockProvider {
+    + Instance: StockProvider {get}
+    + StockUpdateEvent
+    + ValidateShare(share: String): boolean
+    + SubscribeStockProviderEvent(share: String, handler: EventHandler): void
+}
+
+class Share {
+    + name: String {get}
+    + value: float {get}
+    + StockRecommendedEvent
+    + OnStockUpdate(obj, e: StockUpdateEventArgs): void
+    + GetValues(numValues: int): (DateTime, float)[]
+    + StartSupervision(tradeAdvisor: TradeAdvisor, strategy: String, parameters: float[]): void
+    + AppendValue(time: DateTime, value: float): void
+    tradeAdvisor: ITradeAdvisor
+}
+
+class StockUpdateEventArgs {
+    + ShareName: String {get}
+    + Time: DateTime {get}
+    + Value: float {get}
+}
+
+class TradeAdvisor {
+    + SetAdvisorStrategy(strategy: String, parameters: float[]): void
+    + Update(share: Share): string
+}
+
+
+
+
+' Relationships
+UI --> AddShareEventArgs
+UI --> SuperviseStockEventArgs
+UI ..> DisplayEventArgs
+DisplayEventArgs <-- StockManager
+AddShareEventArgs <.. StockManager
+SuperviseStockEventArgs <.. StockManager
+StockManager ..> StockRecommendedEventArgs
+StockRecommendedEventArgs <-- Share
+StockManager  -->"0..*" Share
+StockManager "1" o-- "1" IStockProviderInterface
+IStockProviderInterface <|.. StockProvider
+StockProvider --o Share
+Share "0..*" --> "1" ITradeAdvisor
+Share ..> StockUpdateEventArgs
+StockProvider ..> StockUpdateEventArgs
+
+
+
+@enduml
